@@ -1,4 +1,4 @@
-import { Button, CircularProgress, Stack, TextField, Snackbar } from "@mui/material";
+import { Button, CircularProgress, Stack, TextField } from "@mui/material";
 import { Box } from "@mui/system";
 import axios from "axios";
 import { useSnackbar } from "notistack";
@@ -7,8 +7,12 @@ import { config } from "../App";
 import Footer from "./Footer";
 import Header from "./Header";
 import "./Register.css";
+import { useHistory, Link } from "react-router-dom";
+
 
 const Register = () => {
+  // const { enqueueSnackbar } = useSnackbar();
+
   const [userName,SetuserName] = useState("");
   const [password,Setpassword] = useState("");
   const [cpassword,Setcpassword] = useState("");
@@ -154,7 +158,6 @@ const Register = () => {
       minHeight="100vh"
     >
       <Header hasHiddenAuthButtons />
-     
       <Box className="content">
         <Stack spacing={2} className="form">
           <h2 className="title">Register</h2>
@@ -168,13 +171,9 @@ const Register = () => {
             placeholder="Enter Username"
             fullWidth
           />
-           {/* <Button onClick={() => enqueueSnackbar('I love hooks')}>
-      Show snackbar
-    </Button> */}
-    {/* <button onClick={() => enqueueSnackbar('That was easy!')}>Show snackbar</button> */}
-
+          
           <TextField
-          onChange={passwordChange}
+            onChange={passwordChange}
             id="password"
             variant="outlined"
             label="Password"
