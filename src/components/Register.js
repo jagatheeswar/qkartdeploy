@@ -1,4 +1,4 @@
-import { Button, CircularProgress, Stack, TextField } from "@mui/material";
+import { Button, CircularProgress, Stack, TextField, Snackbar } from "@mui/material";
 import { Box } from "@mui/system";
 import axios from "axios";
 import { useSnackbar } from "notistack";
@@ -9,7 +9,28 @@ import Header from "./Header";
 import "./Register.css";
 
 const Register = () => {
-  const { enqueueSnackbar } = useSnackbar();
+  const [userName,SetuserName] = useState("");
+  const [password,Setpassword] = useState("");
+  const [cpassword,Setcpassword] = useState("");
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar()
+  const [load,setload] = useState(false);
+
+  function usernameChange(e){
+    SetuserName(e.target.value);
+    // console.log(userName);
+  }
+
+  function passwordChange(e){
+    Setpassword(e.target.value);
+    // console.log(password);
+  }
+  function cpasswordChange(e){
+    Setcpassword(e.target.value);
+    // console.log(cpassword);
+  }
+ 
+  console.log(config.endpoint+"/auth/register");
+
 
 
   // TODO: CRIO_TASK_MODULE_REGISTER - Implement the register function
@@ -35,7 +56,39 @@ const Register = () => {
    *      "message": "Username is already taken"
    * }
    */
-  const register = async (formData) => {
+   const register = async (formData) => {
+
+   if(validateInput({
+    "username":userName,
+    "password": password,
+    "confirmPassword": cpassword
+   }))
+
+   {
+    setload(true);
+    console.log("came inside if validate input")
+    axios.post(`${config.endpoint}/auth/register`, 
+    {
+      "username": userName,"password": password
+  }
+    ).then(
+       (res)=> {
+        console.log("response");
+        console.log(res)
+        enqueueSnackbar('success') 
+        setload(false)       
+    }
+    ).catch(
+       (error)=> 
+    {
+     if(error.response.status === 400)
+     enqueueSnackbar("Username is already taken")
+     if(error.response.status === 404)
+     enqueueSnackbar("backend error")
+     setload(false);
+    }
+    );
+   }
   };
 
   // TODO: CRIO_TASK_MODULE_REGISTER - Implement user input validation logic
@@ -57,6 +110,40 @@ const Register = () => {
    * -    Check that confirmPassword field has the same value as password field - Passwords do not match
    */
   const validateInput = (data) => {
+    if(data.password.length <6 && data.password !=="")
+    {
+     enqueueSnackbar("password length is less than 6");
+    }
+ 
+    if(data.password.length===0)
+    {
+     enqueueSnackbar("password is required");
+    }
+ 
+    if(data.username.length<6 && data.username !=="")
+    {
+     enqueueSnackbar("username length is less than 6");
+    }
+ 
+    if(data.username.length===0)
+    {
+     enqueueSnackbar("username is required");
+    }
+ 
+    if(data.password !== data.confirmPassword)
+    {
+      enqueueSnackbar("passwords do not match");
+    }
+    console.log(data.confirmPassword ===data.password);
+    console.log(data.username.length>=6);
+    console.log(data.password.length >= 6);
+
+    if(data.confirmPassword===data.password && data.username.length>=6 && data.password.length >= 6)
+    {
+      console.log("returns true")
+      return true;
+    }
+    return false;
   };
 
   return (
@@ -67,10 +154,12 @@ const Register = () => {
       minHeight="100vh"
     >
       <Header hasHiddenAuthButtons />
+     
       <Box className="content">
         <Stack spacing={2} className="form">
           <h2 className="title">Register</h2>
           <TextField
+          onChange={usernameChange}
             id="username"
             label="Username"
             variant="outlined"
@@ -79,7 +168,13 @@ const Register = () => {
             placeholder="Enter Username"
             fullWidth
           />
+           {/* <Button onClick={() => enqueueSnackbar('I love hooks')}>
+      Show snackbar
+    </Button> */}
+    {/* <button onClick={() => enqueueSnackbar('That was easy!')}>Show snackbar</button> */}
+
           <TextField
+          onChange={passwordChange}
             id="password"
             variant="outlined"
             label="Password"
@@ -90,6 +185,7 @@ const Register = () => {
             placeholder="Enter a password with minimum 6 characters"
           />
           <TextField
+            onChange={cpasswordChange}
             id="confirmPassword"
             variant="outlined"
             label="Confirm Password"
@@ -97,9 +193,18 @@ const Register = () => {
             type="password"
             fullWidth
           />
-           <Button className="button" variant="contained">
+           { load ? (
+            <div id = "circular">
+            <CircularProgress />
+            </div>
+           ):
+           (
+            <Button onClick={register} type="submit" className="button" variant="contained">
             Register Now
            </Button>
+           )
+
+           }
           <p className="secondary-action">
             Already have an account?{" "}
              <a className="link" href="#">
