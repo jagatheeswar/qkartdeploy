@@ -8,10 +8,15 @@ import Footer from "./Footer";
 import Header from "./Header";
 import "./Register.css";
 import { useHistory, Link } from "react-router-dom";
+import { redirect } from "react-router-dom";
+
 
 
 const Register = () => {
   // const { enqueueSnackbar } = useSnackbar();
+
+  let history = useHistory(); //add this line
+
 
   const [userName,SetuserName] = useState("");
   const [password,Setpassword] = useState("");
@@ -33,7 +38,7 @@ const Register = () => {
     // console.log(cpassword);
   }
  
-  console.log(config.endpoint+"/auth/register");
+  // console.log(config.endpoint+"/auth/register");
 
 
 
@@ -70,17 +75,19 @@ const Register = () => {
 
    {
     setload(true);
-    console.log("came inside if validate input")
+    // console.log("came inside if validate input")
     axios.post(`${config.endpoint}/auth/register`, 
     {
       "username": userName,"password": password
   }
     ).then(
        (res)=> {
-        console.log("response");
-        console.log(res)
+        // console.log("response");
+        // console.log(res)
         enqueueSnackbar('success') 
         setload(false)       
+        history.push('/login');
+
     }
     ).catch(
        (error)=> 
@@ -138,13 +145,13 @@ const Register = () => {
     {
       enqueueSnackbar("passwords do not match");
     }
-    console.log(data.confirmPassword ===data.password);
-    console.log(data.username.length>=6);
-    console.log(data.password.length >= 6);
+    // console.log(data.confirmPassword ===data.password);
+    // console.log(data.username.length>=6);
+    // console.log(data.password.length >= 6);
 
     if(data.confirmPassword===data.password && data.username.length>=6 && data.password.length >= 6)
     {
-      console.log("returns true")
+      // console.log("returns true")
       return true;
     }
     return false;
@@ -155,12 +162,12 @@ const Register = () => {
       display="flex"
       flexDirection="column"
       justifyContent="space-between"
-      minHeight="100vh"
+      minHeight="90vh"
     >
       <Header hasHiddenAuthButtons />
       <Box className="content">
-        <Stack spacing={2} className="form">
-          <h2 className="title">Register</h2>
+        <Stack spacing={2} className="form"  id="contentid">
+        <h2 className="title">Register</h2>
           <TextField
           onChange={usernameChange}
             id="username"
@@ -206,7 +213,7 @@ const Register = () => {
            }
           <p className="secondary-action">
             Already have an account?{" "}
-             <a className="link" href="#">
+             <a className="link" href="/login">
               Login here
              </a>
           </p>

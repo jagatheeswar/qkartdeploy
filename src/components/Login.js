@@ -8,9 +8,24 @@ import { config } from "../App";
 import Footer from "./Footer";
 import Header from "./Header";
 import "./Login.css";
+import { Redirect } from 'react-router-dom';
+import { Navigate } from "react-router-dom";
+
 
 const Login = () => {
+  let history = useHistory(); //add this line
+
+  const [username,setusername] = useState("");
+  const [password,setpassword] = useState("");
+  const [load,setload] = useState(false);
+
   const { enqueueSnackbar } = useSnackbar();
+  const usernamehandle = (e)=>{
+    setusername(e.target.value);
+  }
+  const passwordhandle = (e)=>{
+    setpassword(e.target.value);
+  }
 
   // TODO: CRIO_TASK_MODULE_LOGIN - Fetch the API response
   /**
@@ -37,7 +52,40 @@ const Login = () => {
    * }
    *
    */
+
   const login = async (formData) => {
+    formData = {
+      "username":username,
+      "password":password
+    };
+    // console.log(formData)
+
+    if(validateInput(formData))
+     {
+      setload(true);
+      // console.log("came inside if validate input")
+      axios.post(`${config.endpoint}/auth/login`, formData
+      ).then(
+         (res)=> {
+          // console.log("response");
+          // console.log(res)
+          enqueueSnackbar('logged in') 
+          persistLogin(res.data.token,res.data.username,res.data.balance);
+          setload(false)   
+          history.push('/');
+        }
+      ).catch(
+         (error)=> 
+      {
+        // console.log(error.response)
+      if(error.response.status === 400)
+      enqueueSnackbar(error.response.data.message)
+      if(error.response.status === 404)
+      enqueueSnackbar("backend error")
+      //  setload(false);
+      }
+      );
+     }
   };
 
   // TODO: CRIO_TASK_MODULE_LOGIN - Validate the input
@@ -56,6 +104,35 @@ const Login = () => {
    * -    Check that password field is not an empty value - "Password is a required field"
    */
   const validateInput = (data) => {
+    if(data.password.length <6 && data.password !=="")
+    {
+     enqueueSnackbar("password length is less than 6");
+    }
+ 
+    if(data.password.length===0)
+    {
+     enqueueSnackbar("password is required");
+    }
+ 
+    if(data.username.length<6 && data.username !=="")
+    {
+     enqueueSnackbar("username length is less than 6");
+    }
+ 
+    if(data.username.length===0)
+    {
+     enqueueSnackbar("username is required");
+    }
+ 
+    // console.log(data.username.length>=6);
+    // console.log(data.password.length >= 6);
+
+    if(data.username.length>=6 && data.password.length >= 6)
+    {
+      // console.log("returns true")
+      return true;
+    }
+    return false;
   };
 
   // TODO: CRIO_TASK_MODULE_LOGIN - Persist user's login information
@@ -75,6 +152,13 @@ const Login = () => {
    * -    `balance` field in localStorage can be used to store the balance amount in the user's wallet
    */
   const persistLogin = (token, username, balance) => {
+    // console.log("inside persistlogin")
+    // console.log(token);
+    // console.log(username);
+    // console.log(balance);
+    localStorage.setItem('username', username)
+    localStorage.setItem('token', token)
+    localStorage.setItem('balance', balance)
   };
 
   return (
@@ -87,6 +171,38 @@ const Login = () => {
       <Header hasHiddenAuthButtons />
       <Box className="content">
         <Stack spacing={2} className="form">
+        <h2 className="title">Login</h2>
+          <TextField
+          onChange={usernamehandle}
+            id="username"
+            label="username"
+            variant="outlined"
+            title="Username"
+            name="username"
+            placeholder="Enter Username"
+            fullWidth
+          />
+          
+          <TextField
+          onChange={passwordhandle}
+            id="password"
+            variant="outlined"
+            label="password"
+            name="password"
+            type="password"
+            helperText="Password must be atleast 6 characters length"
+            fullWidth
+            placeholder="Enter a password with minimum 6 characters"
+          />
+          <Button onClick={login} type="submit" variant="contained">
+          login to qkart
+           </Button>
+          <p className="secondary-action">
+            Dont't have an account?{" "}
+             <a className="link" href="/register">
+            Register now
+             </a>
+          </p>
         </Stack>
       </Box>
       <Footer />

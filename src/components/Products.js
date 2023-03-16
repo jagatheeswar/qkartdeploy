@@ -17,12 +17,10 @@ import "./Products.css";
 
 
 const Products = () => {
-
-
-
-
-
-
+  console.log("inside product page")
+  console.log(localStorage.getItem('username'));
+  console.log(localStorage.getItem('balance'));
+  console.log(localStorage.getItem('token'));
 
   return (
     <div>
@@ -34,7 +32,7 @@ const Products = () => {
          <Grid item className="product-grid">
            <Box className="hero">
              <p className="hero-heading">
-               India’s <span className="hero-highlight">FASTEST DELIVERY</span>{" "}
+               India's <span className="hero-highlight">FASTEST DELIVERY</span>{" "}
                to your door step
              </p>
            </Box>

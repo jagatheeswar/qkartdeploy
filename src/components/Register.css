@@ -8,7 +8,12 @@
   align-items: center;
   height: 70vh;
 }
-
+#contentid{
+  height: auto;
+}
+.secondary-action{
+  margin: 0px !important;
+}
 .form {
   background-color: white;
   border-radius: 10px;
@@ -20,6 +25,7 @@
 
 .title {
   color: #00a278;
+  margin: 0px;
 }
 
 .secondary-action {
