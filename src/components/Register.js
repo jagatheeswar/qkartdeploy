@@ -178,10 +178,9 @@ const Register = () => {
             placeholder="Enter Username"
             fullWidth
           />
-          
           <TextField
-            onChange={passwordChange}
             id="password"
+            onChange={passwordChange}
             variant="outlined"
             label="Password"
             name="password"

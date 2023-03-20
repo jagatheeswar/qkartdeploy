@@ -1,16 +1,28 @@
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import { Avatar, Button, Stack } from "@mui/material";
+import { Avatar, Button, Stack,TextField,InputAdornment } from "@mui/material";
 import Box from "@mui/material/Box";
 import React, { useState, useEffect } from 'react';
 import "./Header.css";
 import { useHistory, Link } from "react-router-dom";
+import { Search, SentimentDissatisfied } from "@mui/icons-material";
 
 
 
-const Header = ({ children, hasHiddenAuthButtons }) => {
+const Header = ({children,hasHiddenAuthButtons,setsearchtext,performSearch,setsearchview,debounceSearch,clock}) => {
   let history = useHistory(); //add this line
   const [loggedin,setloggedin] = useState(false);
-  const [username,setusername] = useState("")
+  const [username,setusername] = useState("");
+
+  
+  function searchtexthandle(e){
+    // console.log(e.target.value);
+    setsearchtext(e.target.value);
+    //performSearch(e.target.value);
+    debounceSearch(e.target.value,clock);
+    setsearchview(true)
+
+  }
+
   useEffect(() => {
     // Update the document title using the browser API\
 
@@ -50,7 +62,28 @@ const Header = ({ children, hasHiddenAuthButtons }) => {
         <Box className="header-title">
             <img src="logo_light.svg" alt="QKart-icon"></img>
         </Box>
-        {hasHiddenAuthButtons ? (
+
+       { children && 
+        <Box style={{width:"390px"}}>
+        <TextField
+        onChange= {searchtexthandle}
+        className="search-desktop"
+        size="small"
+        fullWidth
+        InputProps={{
+          endAdornment: (
+            <InputAdornment position="end">
+              <Search color="primary" />
+            </InputAdornment>
+          ),
+        }}
+        placeholder="Search for items/categories"
+        name="search"
+      />
+        </Box>
+       } 
+        
+        { hasHiddenAuthButtons ? (
            <Button
           className="explore-button"
           startIcon={<ArrowBackIcon />}

@@ -52,6 +52,14 @@
   display: none !important;
 }
 
+#loader{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+
+}
 @media screen and (min-width: 768px) {
   .hero {
     justify-content: flex-end;
