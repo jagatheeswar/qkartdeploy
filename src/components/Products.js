@@ -90,70 +90,48 @@ const Products = () => {
    * }
    */
   const performAPICall = async () => {
-
-
+    
     let productarr = [];
     let status = "";
-
-
     try{
-     status =  await axios
-    .get(`${config.endpoint}/products`)
-    setfetcherror(false);
-    setproducts(status.data);
-    setloading(false);
-      // console.log("status await")
-      // console.log(status);
-      // console.log(status.data);
-      return status.data;
-    }
-    catch(e){
-      setloading(false);
-      // console.log("await error");
-      // console.log(e);
-      setfetcherror(true);
+      status =  await axios
+     .get(`${config.endpoint}/products`)
+     setfetcherror(false);
+     setproducts(status.data);
+     setloading(false);
+       // console.log("status await")
+       // console.log(status);
+       // console.log(status.data);
+       return status.data;
+     }
+     catch(e){
+       setloading(false);
+       // console.log("await error");
+       // console.log(e);
+       setfetcherror(true);
+ 
+     }
+    };
 
-    }
+    useEffect( async() => {
+      const prorudctsarr = await performAPICall();
+      if(localStorage.getItem('username') !== null)
+      {
+        setloggedin(true);
+        history.push("/");
+        setwidth(9);
+        let retval = await fetchCart(localStorage.getItem('token'));
+        setcartitem(retval);
+        setcomarr(generateCartItemsFrom(cartitem,products));
+      }
+    },[addnewitem])
 
-
-    // axios
-    // .get(`${config.endpoint}/products`)
-    // .then((data) => {
-    //   //console.log(data.data.message);
-    //   setfetcherror(false);
-    //   console.log("inside then of perform api calls");
-    //   setproducts(data.data);
-    //   setloading(false);
-    //   // console.log(products);
-    // })
-    // .catch((e) => {
-    //   setfetcherror(true);
-    //   console.log("inside error of perform api calls");
-    //   console.log("error");
-      
-    // });
-
-  };
-
-
-  useEffect( async() => {
-    const prorudctsarr = await performAPICall();
-    if(localStorage.getItem('username') !== null)
-    {
-      setloggedin(true);
-      history.push("/");
-      setwidth(9);
-      let retval = await fetchCart(localStorage.getItem('token'));
-      setcartitem(retval);
-      setcomarr(generateCartItemsFrom(cartitem,products));
-    }
-  },[addnewitem])
-
-  useEffect( async() => {
+    useEffect( async() => {
       if(localStorage.getItem('username') !== null)
        setcomarr(generateCartItemsFrom(cartitem,products));
 
    },[cartitem])
+ 
 
 
   // TODO: CRIO_TASK_MODULE_PRODUCTS - Implement search logic

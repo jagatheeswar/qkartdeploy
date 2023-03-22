@@ -70,8 +70,33 @@ const Checkout = () => {
             </Typography>
             <Divider />
             <Box>
+              {/* TODO: CRIO_TASK_MODULE_CHECKOUT - Display list of addresses and corresponding "Delete" buttons, if present, of which 1 can be selected */}
+               <Typography my="1rem">
+                 No addresses found for this account. Please add one to proceed
+               </Typography>
             </Box>
 
+            {/* TODO: CRIO_TASK_MODULE_CHECKOUT - Dislay either "Add new address" button or the <AddNewAddressView> component to edit the currently selected address */}
+            <Button
+                color="primary"
+                variant="contained"
+                id="add-new-btn"
+                size="large"
+                onClick={() => {
+                  setNewAddress((currNewAddress) => ({
+                    ...currNewAddress,
+                    isAddingNewAddress: true,
+                  }));
+                }}
+              >
+                Add new address
+            </Button>
+            <AddNewAddressView
+                token={token}
+                newAddress={newAddress}
+                handleNewAddress={setNewAddress}
+                addAddress={addAddress}
+            />
 
             <Typography color="#3C3C3C" variant="h4" my="1rem">
               Payment
