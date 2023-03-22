@@ -11,34 +11,36 @@ import {
 import React from "react";
 import "./ProductCard.css";
 
-const ProductCard = ({ product, handleAddToCart }) => {
+const ProductCard = ({ product, handleAddToCart,cartitem }) => {
  // console.log("inside product cards page")
   //console.log(product)
+  function handleclick(e){
+    handleAddToCart(localStorage.getItem('token'),cartitem,product,e.target.value,1,true);
+  }
   return (
     <Card className="card">
       <CardMedia
       component="img"
       alt="green iguana"
-        height="140"
         image={product.image}
       />
       <CardContent>
-        <Typography gutterBottom variant="h5" component="div">
+        <Typography gutterBottom variant="h6" component="div">
          {product.name}
         </Typography>
-        <Typography gutterBottom variant="h3" component="div">
+        <Typography gutterBottom variant="body1" component="div">
           ${product.cost}
         </Typography>
         
-<Typography variant="body2" color="text.secondary">
+
 <Rating name="read-only" value={product.rating}  readOnly size="large" />
-</Typography>
+
 
       </CardContent>
 
 
       <CardActions>
-      <Button variant="contained" className="card-button"> ADD TO CART</Button>
+      <Button variant="contained" value={product._id} className="card-button" onClick={handleclick} > add to cart</Button>
 
       </CardActions>
     </Card>

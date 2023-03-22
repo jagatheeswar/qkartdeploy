@@ -6,7 +6,7 @@ import {
 } from "@mui/icons-material";
 import { Button, IconButton, Stack } from "@mui/material";
 import { Box } from "@mui/system";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
 import "./Cart.css";
 
@@ -47,7 +47,26 @@ import "./Cart.css";
  *    Array of objects with complete data on products in cart
  *
  */
+
+var comarr = [];
 export const generateCartItemsFrom = (cartData, productsData) => {
+  //console.log(productsData);
+  //console.log(cartData);
+   comarr = [];
+  for(var i = 0;i<cartData.length;i++)
+  {
+    for(var j = 0;j<productsData.length;j++)
+    {
+      if(cartData[i].productId=== productsData[j]._id)
+      {
+        productsData[j].qty = cartData[i].qty;
+        comarr.push(productsData[j]);
+      }
+    }
+  }
+  //console.log(comarr);
+  getTotalCartValue(comarr)
+  return comarr;
 };
 
 /**
@@ -61,6 +80,15 @@ export const generateCartItemsFrom = (cartData, productsData) => {
  *
  */
 export const getTotalCartValue = (items = []) => {
+  //console.log("getotalcartvalue");
+  var sum = 0;
+  //console.log(items);
+  items.map((item,index)=>{
+    var costperitem = item.qty * item.cost;
+    sum = sum +costperitem;
+  })
+  //console.log(sum);
+  return sum;
 };
 
 
@@ -83,6 +111,7 @@ const ItemQuantity = ({
   handleAdd,
   handleDelete,
 }) => {
+  
   return (
     <Stack direction="row" alignItems="center">
       <IconButton size="small" color="primary" onClick={handleDelete}>
@@ -114,11 +143,33 @@ const ItemQuantity = ({
  */
 const Cart = ({
   products,
-  items = [],
+  items,
   handleQuantity,
 }) => {
+  const [loggedin,setloggedin] = useState(false);
+  const [user_token,setusertoken] = useState("");
 
+  useEffect( async() => {
+    if(localStorage.getItem('username') !== null)
+    {
+      setloggedin(true);
+      setusertoken(localStorage.getItem('token'));
+    }
+  },[])
+
+  //console.log("came inside cart")
+  let history = useHistory(); //add this line
+  
+  function checkoutclick(e)
+  {
+    history.push("/checkout");
+  }
+  function handleDelete(e)
+  {
+    console.log("hi")
+  }
   if (!items.length) {
+    //console.log("inside if")
     return (
       <Box className="cart empty">
         <ShoppingCartOutlined className="empty-cart-icon" />
@@ -131,8 +182,77 @@ const Cart = ({
 
   return (
     <>
+    
       <Box className="cart">
         {/* TODO: CRIO_TASK_MODULE_CART - Display view for each cart item with non-zero quantity */}
+        {items.map((product, index) => {
+	    return (  
+    <Box display="flex" alignItems="flex-start" padding="1rem">
+    <Box className="image-container">
+        <img
+            // Add product image
+            src={product.image}
+            // Add product name as alt eext
+            alt={product.name}
+            width="100%"
+            height="100%"
+        />
+    </Box>
+    <Box
+        display="flex"
+        flexDirection="column"
+        justifyContent="space-between"
+        height="6rem"
+        paddingX="1rem"
+    >
+        <div>{product.name}</div>
+        <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+        >
+        <ItemQuantity value={product.qty} handleAdd =
+
+ {
+
+ async()=>{
+
+ let new_val=product.qty+1
+
+ handleQuantity(user_token,{"productId":product._id,"qty":new_val},products,new_val,false)
+
+ }
+
+ }
+
+ handleDelete=
+
+ {
+
+ async()=>{
+
+ let new_val=product.qty-1
+
+ handleQuantity(user_token,{"productId":product._id,"qty":new_val},products,new_val,false)
+
+ }
+
+ }
+
+ // Add required props by checking implementation
+
+ />
+        <Box padding="0.5rem" fontWeight="700">
+            ${product.cost}
+        </Box>
+        </Box>
+    </Box>
+</Box>
+  );
+      }
+        )}
+
+
         <Box
           padding="1rem"
           display="flex"
@@ -159,6 +279,7 @@ const Cart = ({
             variant="contained"
             startIcon={<ShoppingCart />}
             className="checkout-btn"
+            onClick={checkoutclick}
           >
             Checkout
           </Button>

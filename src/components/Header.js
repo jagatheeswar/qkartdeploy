@@ -54,6 +54,7 @@ const Header = ({children,hasHiddenAuthButtons,setsearchtext,performSearch,setse
   }
 
   function register(){
+    console.log("clicked register button")
     history.push("/register")
   }
 

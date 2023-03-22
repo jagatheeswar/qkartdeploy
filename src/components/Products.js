@@ -14,6 +14,10 @@ import Footer from "./Footer";
 import Header from "./Header";
 import "./Products.css";
 import ProductCard from "./ProductCard"
+import Cart from "./Cart";
+import { useHistory, Link } from "react-router-dom";
+import {generateCartItemsFrom} from "./Cart.js"
+ 
 
 
 /**
@@ -30,6 +34,8 @@ import ProductCard from "./ProductCard"
 
 
 const Products = () => {
+  let history = useHistory(); //add this line
+
   const { enqueueSnackbar } = useSnackbar();
   const [products,setproducts] = useState([]);
   const [searchproducts,setsearchproducts] = useState([]);
@@ -39,7 +45,13 @@ const Products = () => {
   const [fetcherror,setfetcherror] = useState(false);
   const [searchtext,setsearchtext] = useState("");
   const [clock,setclock] = useState("");
+  const [loggedin,setloggedin] = useState(false);
+  const [width,setwidth] = useState(12);
+  const [comarr,setcomarr] = useState([]);
+  const [cartitem,setcartitem] = useState([]);
+  const [addnewitem,setaddnewitem] = useState(false);
 
+ 
   // TODO: CRIO_TASK_MODULE_PRODUCTS - Fetch products data and store it
   /**
    * Make API call to get the products list and store it to display the products
@@ -78,27 +90,71 @@ const Products = () => {
    * }
    */
   const performAPICall = async () => {
-    axios
+
+
+    let productarr = [];
+    let status = "";
+
+
+    try{
+     status =  await axios
     .get(`${config.endpoint}/products`)
-    .then((data) => {
-      //console.log(data.data.message);
-      setfetcherror(false);
-      console.log("inside then of perform api calls");
-      setproducts(data.data);
+    setfetcherror(false);
+    setproducts(status.data);
+    setloading(false);
+      // console.log("status await")
+      // console.log(status);
+      // console.log(status.data);
+      return status.data;
+    }
+    catch(e){
       setloading(false);
-      //console.log(products);
-    })
-    .catch((e) => {
+      // console.log("await error");
+      // console.log(e);
       setfetcherror(true);
-      console.log("inside error of perform api calls");
-      console.log("error");
+
+    }
+
+
+    // axios
+    // .get(`${config.endpoint}/products`)
+    // .then((data) => {
+    //   //console.log(data.data.message);
+    //   setfetcherror(false);
+    //   console.log("inside then of perform api calls");
+    //   setproducts(data.data);
+    //   setloading(false);
+    //   // console.log(products);
+    // })
+    // .catch((e) => {
+    //   setfetcherror(true);
+    //   console.log("inside error of perform api calls");
+    //   console.log("error");
       
-    });
+    // });
 
   };
-  useEffect(() => {
-    performAPICall();
-  },[])
+
+
+  useEffect( async() => {
+    const prorudctsarr = await performAPICall();
+    if(localStorage.getItem('username') !== null)
+    {
+      setloggedin(true);
+      history.push("/");
+      setwidth(9);
+      let retval = await fetchCart(localStorage.getItem('token'));
+      setcartitem(retval);
+      setcomarr(generateCartItemsFrom(cartitem,products));
+    }
+  },[addnewitem])
+
+  useEffect( async() => {
+      if(localStorage.getItem('username') !== null)
+       setcomarr(generateCartItemsFrom(cartitem,products));
+
+   },[cartitem])
+
 
   // TODO: CRIO_TASK_MODULE_PRODUCTS - Implement search logic
   /**
@@ -120,17 +176,18 @@ const Products = () => {
     .then((data) => {
       //console.log(data.data.message);
       setfetcherror(false);
-      console.log("inside then of perform search api calls" + text);
+      //console.log("inside then of perform search api calls" + text);
       setsearchproducts(data.data);
       setloading(false);
-      console.log("search array");
-      console.log(products );
+      // console.log("search array");
+      // console.log(products );
     })
     .catch((e) => {
+      setloading(false)
       setfetcherror(true);
-      console.log("inside error of perform search api calls")
-      console.log(text);
-      console.log("error");
+      // console.log("inside error of perform search api calls")
+      // console.log(text);
+      // console.log("error");
       
     });
 
@@ -186,12 +243,23 @@ const Products = () => {
    *      "message": "Protected route, Oauth2 Bearer token not found"
    * }
    */
+
+  
   const fetchCart = async (token) => {
     if (!token) return;
-
     try {
       // TODO: CRIO_TASK_MODULE_CART - Pass Bearer token inside "Authorization" header to get data from "GET /cart" API and return the response data
-    } catch (e) {
+     
+       let x = await axios.get(`${config.endpoint}/cart` , {
+        headers: {
+          'Authorization': `Bearer ${token}` 
+        }
+      });
+      // console.log("printing x");
+      // console.log(x.data);
+      return x.data;
+    } 
+    catch (e) {
       if (e.response && e.response.status === 400) {
         enqueueSnackbar(e.response.data.message, { variant: "error" });
       } else {
@@ -204,6 +272,7 @@ const Products = () => {
       }
       return null;
     }
+   
   };
 
 
@@ -221,6 +290,23 @@ const Products = () => {
    *
    */
   const isItemInCart = (items, productId) => {
+    // console.log("inside isitem in cart");
+    // console.log(items);
+    // items.forEach((x)=>{
+    //   console.log(x.productId +"  from x" );
+    //   console.log(productId +"  from idd" );
+    //   if(x.productId === productId)
+    //   {
+    //     console.log("cameeeeeeeeeeeee in")
+    //     return true;
+    //   }
+    // }
+    // );
+    for(var i =0;i<items.length;i++)
+    {
+      if(items[i].productId===productId)
+      return true;
+    }
   };
 
   /**
@@ -262,11 +348,57 @@ const Products = () => {
   const addToCart = async (
     token,
     items,
-    products,
+    product,
     productId,
     qty,
-    options = { preventDuplicate: false }
+    options
   ) => {
+    
+    if(token)
+    {
+      // console.log("heree")
+      // console.log(options);
+      if(options)
+      {
+    if(isItemInCart(items,productId))
+    {
+      enqueueSnackbar("ITEM alreaDy in carT",{ variant: 'warning',autoHideDuration:3000 });
+      return;
+    }
+      else{
+      // console.log("add to cart function" + token);
+      // console.log(productId);
+      
+      //   console.log("printing all essential values");
+      //   console.log(productId );
+      //   console.log(qty);
+         let res = await axios.post(`${config.endpoint}/cart` , {
+        'productId':`${productId}`,
+        'qty': qty
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}` 
+        }
+      });
+    setcartitem(res.data);
+      // setaddnewitem(!addnewitem);
+    }
+  }
+  else{
+        // console.log("pressed pluse or minus")
+         let res = await axios.post(`${config.endpoint}/cart` , items, {
+        headers: {
+          'Authorization': `Bearer ${token}` 
+        }
+      });
+    setcartitem(res.data);
+      // setaddnewitem(!addnewitem);
+  }
+  }
+  else{
+    enqueueSnackbar("Please login to add to cart",{ variant: 'warning',autoHideDuration:3000 });
+      return;
+  }
   };
 
 
@@ -297,18 +429,20 @@ const Products = () => {
         placeholder="Search for items/categories"
         name="search"
       />
-       <Grid container>
+      <Grid container spacing={2}>
+      <Grid container xs={12} md={width} spacing={2}>
          <Grid item className="product-grid">
            <Box className="hero">
              <p className="hero-heading">
 
                India’s <span className="hero-highlight">FASTEST DELIVERY</span>{" "}
-               to your door step {searchtext}
+               to your door step 
              </p>
              
            </Box>
          </Grid>
-          {
+        
+         {
           loading
            ? (
             <Grid container spacing={2}>
@@ -332,27 +466,34 @@ const Products = () => {
               </Grid>
     </Grid>
     ) : (
-      searchview ?(
-      <Grid container spacing={2} className="loading">
-      {
-      searchproducts.map((product, index) => (  
-      <Grid item xs={6} md={3}>
-      <ProductCard product={product}/>
+      searchview ? searchproducts.map((product, index) => {
+	return (  
+      <Grid item xs={6} md={3} spacing={2}>
+      <ProductCard cartitem={cartitem} product={product} handleAddToCart={addToCart} />
       </Grid>
-))}  
-</Grid>):(<Grid container spacing={2} className="loading">
-      {
-      products.map((product, index) => (  
-      <Grid item xs={6} md={3}>
-      <ProductCard product={product}/>
+);
+})  :(
+      
+      products.map((product, index) => {  
+return (
+      <Grid item xs={6} md={3} spacing={2}>
+      <ProductCard cartitem={cartitem} product={product} handleAddToCart={addToCart} />
       </Grid>
-))}  
-</Grid>)
+);
+} 
+)
       
     )    
-          )
+    ) )
           }
        </Grid>
+       {loggedin ? (
+        <Grid xs={12} md={3} style={{backgroundColor:"#E9F5E1"}}>
+        <Cart products={products} items={comarr} handleQuantity={addToCart}/>
+       </Grid>
+       ):(<></>)}
+       
+      </Grid>
       <Footer />
     </div>
   );
