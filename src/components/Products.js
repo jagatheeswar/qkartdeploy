@@ -52,7 +52,6 @@ const Products = () => {
   const [addnewitem,setaddnewitem] = useState(false);
   const [searchmobile,setsearchmobile] = useState("");
 
-
  
   // TODO: CRIO_TASK_MODULE_PRODUCTS - Fetch products data and store it
   /**
@@ -397,11 +396,11 @@ const Products = () => {
         
         </Header>
       <TextField
-      onChange= {(e)=>{
-        setsearchmobile(e.target.value)
-        debounceSearch(e.target.value,clock);
-        setsearchview(true);
-      }}
+              onChange= {(e)=>{
+                setsearchmobile(e.target.value)
+                debounceSearch(e.target.value,clock);
+                setsearchview(true);
+              }}
         className="search-mobile"
         size="small"
         fullWidth
