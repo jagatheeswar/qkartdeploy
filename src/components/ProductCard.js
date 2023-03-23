@@ -15,6 +15,7 @@ const ProductCard = ({ product, handleAddToCart,cartitem }) => {
  // console.log("inside product cards page")
   //console.log(product)
   function handleclick(e){
+    // console.log("came in side handle click");
     handleAddToCart(localStorage.getItem('token'),cartitem,product,e.target.value,1,true);
   }
   return (

@@ -29,7 +29,7 @@ const Header = ({children,hasHiddenAuthButtons,setsearchtext,performSearch,setse
     if(localStorage.getItem('username') !== null)
     {
       setloggedin(true);
-      history.push("/");
+      // history.push("/");
       setusername(localStorage.getItem('username'));
     }
   },[]);

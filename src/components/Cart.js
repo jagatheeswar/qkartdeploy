@@ -112,19 +112,29 @@ const ItemQuantity = ({
   value,
   handleAdd,
   handleDelete,
+  isReadOnly
 }) => {
   
   return (
     <Stack direction="row" alignItems="center">
-      <IconButton size="small" color="primary" onClick={handleDelete}>
+      {
+        !isReadOnly && (
+          <IconButton size="small" color="primary" onClick={handleDelete}>
         <RemoveOutlined />
       </IconButton>
-      <Box padding="0.5rem" data-testid="item-qty">
-        {value}
-      </Box>
+        )
+      }
+      
+      <Box padding="0.1rem" data-testid="item-qty">
+       {isReadOnly && <span>qty:</span>}{value}
+      </Box>  
+      {
+        !isReadOnly && (
       <IconButton size="small" color="primary" onClick={handleAdd}>
         <AddOutlined />
       </IconButton>
+      )
+    }
     </Stack>
   );
 };
@@ -149,6 +159,7 @@ const Cart = ({
   products,
   items,
   handleQuantity,
+  isReadOnly
 }) => {
   const [loggedin,setloggedin] = useState(false);
   const [user_token,setusertoken] = useState("");
@@ -168,10 +179,7 @@ const Cart = ({
   {
     history.push("/checkout");
   }
-  function handleDelete(e)
-  {
-    console.log("hi")
-  }
+  
   if (!items.length) {
     //console.log("inside if")
     return (
@@ -215,7 +223,7 @@ const Cart = ({
             justifyContent="space-between"
             alignItems="center"
         >
-        <ItemQuantity value={product.qty} handleAdd =
+        <ItemQuantity isReadOnly={isReadOnly} value={product.qty} handleAdd =
 
  {
 
@@ -255,8 +263,6 @@ const Cart = ({
   );
       }
         )}
-
-
         <Box
           padding="1rem"
           display="flex"
@@ -278,17 +284,108 @@ const Cart = ({
         </Box>
 
         <Box display="flex" justifyContent="flex-end" className="cart-footer">
+          {!isReadOnly && 
           <Button
-            color="primary"
-            variant="contained"
-            startIcon={<ShoppingCart />}
-            className="checkout-btn"
-            onClick={checkoutclick}
-          >
-            Checkout
-          </Button>
+          color="primary"
+          variant="contained"
+          startIcon={<ShoppingCart />}
+          className="checkout-btn"
+          onClick={checkoutclick}
+        >
+          Checkout
+        </Button>
+          }
         </Box>
       </Box>
+      { isReadOnly &&
+      <Box className="cart">
+        <h1>Order details</h1>
+        <Box
+          padding="1rem"
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+        >
+          <Box color="#3C3C3C" alignSelf="center">
+            Products
+          </Box>
+          <Box
+            color="#3C3C3C"
+            fontWeight="700"
+            fontSize="1.5rem"
+            alignSelf="center"
+            data-testid="cart-total"
+          >
+                        {items.length}
+          </Box>
+        </Box>
+
+        <Box
+          padding="1rem"
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+        >
+          <Box color="#3C3C3C" alignSelf="center">
+            Subtotal
+          </Box>
+          <Box
+            color="#3C3C3C"
+            fontWeight="700"
+            fontSize="1.5rem"
+            alignSelf="center"
+            data-testid="cart-total"
+          >
+            ${getTotalCartValue(items)}
+          </Box>
+        </Box>
+
+
+        <Box
+          padding="1rem"
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+        >
+          <Box color="#3C3C3C" alignSelf="center">
+            Shipping Charges
+          </Box>
+          <Box
+            color="#3C3C3C"
+            fontWeight="700"
+            fontSize="1.5rem"
+            alignSelf="center"
+            data-testid="cart-total"
+          >
+            $0
+          </Box>
+        </Box>
+
+
+        <Box
+          padding="1rem"
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+        >
+          <Box color="#3C3C3C" alignSelf="center">
+            Total
+          </Box>
+          <Box
+            color="#3C3C3C"
+            fontWeight="700"
+            fontSize="1.5rem"
+            alignSelf="center"
+            data-testid="cart-total"
+          >
+            ${getTotalCartValue(items)}
+          </Box>
+        </Box>
+
+
+      </Box>
+
+      }
     </>
   );
 };

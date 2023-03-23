@@ -50,6 +50,8 @@ const Products = () => {
   const [comarr,setcomarr] = useState([]);
   const [cartitem,setcartitem] = useState([]);
   const [addnewitem,setaddnewitem] = useState(false);
+  const [searchmobile,setsearchmobile] = useState("");
+
 
  
   // TODO: CRIO_TASK_MODULE_PRODUCTS - Fetch products data and store it
@@ -331,7 +333,8 @@ const Products = () => {
     qty,
     options
   ) => {
-    
+    console.log("came inside add to cart");
+    console.log(token);
     if(token)
     {
       // console.log("heree")
@@ -394,6 +397,11 @@ const Products = () => {
         
         </Header>
       <TextField
+      onChange= {(e)=>{
+        setsearchmobile(e.target.value)
+        debounceSearch(e.target.value,clock);
+        setsearchview(true);
+      }}
         className="search-mobile"
         size="small"
         fullWidth
@@ -407,8 +415,8 @@ const Products = () => {
         placeholder="Search for items/categories"
         name="search"
       />
-      <Grid container spacing={2}>
-      <Grid container xs={12} md={width} spacing={2}>
+      <Grid container spacing={0}>
+      <Grid container xs={12}  md={width} spacing={2}>
          <Grid item className="product-grid">
            <Box className="hero">
              <p className="hero-heading">
