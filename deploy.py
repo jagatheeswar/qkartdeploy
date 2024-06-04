@@ -127,3 +127,25 @@ function escapeBackslashes(array) {
 let newArray = escapeBackslashes(array);
 console.log(newArray);
 </html>
+
+@app.route('/download_zip', methods=['POST'])
+def download_zip():
+    print("came inside")
+    data = request.get_json()
+    parent_folder_paths = data.get('parent_folder_paths', [])
+    zip_buffer = BytesIO()
+    
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        for parent_folder_path in parent_folder_paths:
+            folder_name = os.path.basename(parent_folder_path)
+            for foldername, subfolders, filenames in os.walk(parent_folder_path):
+                for filename in filenames:
+                    file_path = os.path.join(foldername, filename)
+                    arcname = os.path.join(folder_name, os.path.relpath(file_path, parent_folder_path))
+                    zip_file.write(file_path, arcname)
+    
+    zip_buffer.seek(0)
+    
+    return send_file(zip_buffer, as_attachment=True, download_name='files.zip', mimetype='application/zip')
+
+
