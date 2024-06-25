@@ -13,6 +13,8 @@
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/select/1.3.3/js/dataTables.select.js"></script>
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/2.0.1/js/dataTables.buttons.js"></script>
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/2.0.1/js/buttons.colVis.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/2.0.1/js/buttons.html5.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/2.0.1/js/buttons.print.js"></script>
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/colreorder/1.5.4/js/dataTables.colReorder.js"></script>
     <style>
         .td_relevant {
@@ -28,6 +30,12 @@
             margin-right: 10px;
             width: 100px;
         }
+        thead   {
+    position: sticky;
+    z-index: 12;
+    top: 0px;
+    background: white;
+}
     </style>
 </head>
 <body>
@@ -52,14 +60,15 @@
                 <th>Label</th>
             </tr>
             <tr>
-                <th><input type="text" placeholder="Search ID"></th>
-                <th><input type="text" placeholder="Search Sender"></th>
-                <th><input type="text" placeholder="Search Recipient"></th>
-                <th><input type="text" placeholder="Search Subject"></th>
-                <th><input type="text" placeholder="Search Body"></th>
-                <th><input type="text" placeholder="Search Datetime"></th>
-                <th><input type="text" placeholder="Search Label"></th>
-                <th></th>
+                <th><input type="text" id="search-id" placeholder="Search ID"></th>
+                <th><input type="text" id="search-sender" placeholder="Search Sender"></th>
+                <th><input type="text" id="search-recipient" placeholder="Search Recipient"></th>
+                <th><input type="text" id="search-subject" placeholder="Search Subject"></th>
+                <th><input type="text" id="search-body" placeholder="Search Body"></th>
+                <th><input type="text" id="search-datetime" placeholder="Search Datetime"></th>
+                <th><input type="text" id="search-label" placeholder="Search Label"></th>
+        
+
             </tr>
         </thead>
     </table>
@@ -92,6 +101,7 @@
                     },
                     "dataSrc": function (json) {
                         fullData = json.full_data;
+                        console.log(fullData)
                         return json.data;
                     }
                 },
@@ -109,6 +119,8 @@
                     { "data": "datetime" },
                     { "data": "label" }
                 ],
+                orderCellsTop: true,
+                fixedHeader: true,
                 "createdRow": function(row, data, dataIndex) {
                     $(row).addClass(data.row_class);
                     $(row).addClass(data.id_class);
@@ -122,22 +134,13 @@
                     });
                 },
                 "select": {
-                    "style": 'multi' // 'multi' for multiple select
+                    "style": 'single' // 'multi' for multiple select
                 },
                 "colReorder": true,
-                "dom": 'Bfrtip',
-                "initComplete": function () {
-                    this.api().columns().every(function () {
-                        var that = this;
-                        $('input', this.header()).on('keyup change clear', function () {
-                            if (that.search() !== this.value) {
-                                that.search(this.value).draw();
-                            }
-                        });
-                    });
-                },
+                "dom": 'ipBlrt',
                 "buttons": [
-                    'colvis','copy','pdf'
+                    'colvis',
+                    'print'
                 ]
             });
 
@@ -179,6 +182,9 @@
                 }
             });
 
+            $('.column-search-inputs input').on('keyup change', function() {
+                table.draw();
+            });
         });
 
         function displayDetails(data) {
@@ -197,8 +203,6 @@
     </script>
 </body>
 </html>
-
-
 from flask import Flask, render_template, request, jsonify
 import sqlite3
 import pandas as pd
@@ -224,58 +228,113 @@ def data():
     order_dir = request.args.get('order[0][dir]', type=str)
     from_date = request.args.get('from_date', type=str)
     to_date = request.args.get('to_date', type=str)
-    
-    columns = ['id', 'sender', 'recipient', 'subject', 'body', 'datetime', 'label']
-    order_column = columns[order_column_index]
+
+    search_id = request.args.get('search_id', type=str)
+    search_sender = request.args.get('search_sender', type=str)
+    search_recipient = request.args.get('search_recipient', type=str)
+    search_subject = request.args.get('search_subject', type=str)
+    search_body = request.args.get('search_body', type=str)
+    search_datetime = request.args.get('search_datetime', type=str)
+    search_label = request.args.get('search_label', type=str)
 
     conn = get_db_connection()
-    df = pd.read_sql_query("SELECT * FROM mutable", conn)
+    query = "SELECT * FROM mutable WHERE 1=1"
+    count_query = "SELECT COUNT(*) FROM mutable WHERE 1=1"
     
-    if from_date and to_date:
-        df = df[(df['datetime'] >= from_date) & (df['datetime'] <= to_date)]
+    filters = []
     
+    if search_id:
+        print("inside search id")
+        query += " AND id LIKE ?"
+        count_query += " AND id LIKE ?"
+        filters.append(f'%{search_id}%')
+    if search_sender:
+        print("inside sender")
+        query += " AND sender LIKE ?"
+        count_query += " AND sender LIKE ?"
+        filters.append(f'%{search_sender}%')
+    if search_recipient:
+        print("inside recipient")
+        query += " AND recipient LIKE ?"
+        count_query += " AND recipient LIKE ?"
+        filters.append(f'%{search_recipient}%')
+    if search_subject:
+        query += " AND subject LIKE ?"
+        count_query += " AND subject LIKE ?"
+        filters.append(f'%{search_subject}%')
+    if search_body:
+        query += " AND body LIKE ?"
+        count_query += " AND body LIKE ?"
+        filters.append(f'%{search_body}%')
     if search_value:
-        df = df[df.apply(lambda row: row.astype(str).str.contains(search_value, case=False).any(), axis=1)]
+        query += """ AND (
+            id LIKE ?
+            OR sender LIKE ?
+            OR recipient LIKE ?
+            OR subject LIKE ?
+            OR body LIKE ?
+            OR datetime LIKE ?
+            OR label LIKE ?
+        )"""
+        count_query += """ AND (
+            id LIKE ?
+            OR sender LIKE ?
+            OR recipient LIKE ?
+            OR subject LIKE ?
+            OR body LIKE ?
+            OR datetime LIKE ?
+            OR label LIKE ?
+        )"""
+        wildcard_search_value = f'%{search_value}%'
+        filters.extend([wildcard_search_value] * 7)      
+    if search_datetime:
+        query += " AND datetime LIKE ?"
+        count_query += " AND datetime LIKE ?"
+        filters.append(f'%{search_datetime}%')
+    if search_label:
+        query += " AND label LIKE ?"
+        count_query += " AND label LIKE ?"
+        filters.append(f'%{search_label}%')
     
-    if order_dir == 'asc':
-        df = df.sort_values(by=order_column, ascending=True)
-    else:
-        df = df.sort_values(by=order_column, ascending=False)
+    if from_date:
+        query += " AND datetime >= ?"
+        count_query += " AND datetime >= ?"
+        filters.append(from_date)
+    if to_date:
+        query += " AND datetime <= ?"
+        count_query += " AND datetime <= ?"
+        filters.append(to_date)
     
-    total_records = len(df)
-    df_paginated = df.iloc[start:start+length]
+    order_columns = ["id", "sender", "recipient", "subject", "body", "datetime", "label"]
+    if order_column_index is not None and order_dir in ["asc", "desc"]:
+        query += f" ORDER BY {order_columns[order_column_index]} {order_dir}"
     
-    data = df_paginated.to_dict(orient='records')
-    for record in data:
-        record['row_class'] = 'td_relevant' if record['label'] == 'relevant' else 'td_irrelevant'
-        record['id_class'] = f'td_id_{record["id"]}'
+    query += " LIMIT ? OFFSET ?"
+    filters.extend([length, start])
     
-    full_data = df.to_dict(orient='records')
+    emails = conn.execute(query, filters).fetchall()
+    total_filtered = conn.execute(count_query, filters[:-2]).fetchone()[0] # Remove limit and offset filters
+    total_records = conn.execute("SELECT COUNT(*) FROM mutable").fetchone()[0]
+
+    data = [dict(row) for row in emails]
 
     response = {
         'draw': draw,
         'recordsTotal': total_records,
-        'recordsFiltered': total_records,
+        'recordsFiltered': total_filtered,
         'data': data,
-        'full_data': full_data
+        'full_data': data  # Assuming you want to return the same data for simplicity
     }
-
-    conn.close()
     return jsonify(response)
 
 @app.route('/update_label', methods=['POST'])
 def update_label():
-    row_id = request.json.get('id')
-    new_label = request.json.get('new_label')
-
+    data = request.json
     conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("UPDATE mutable SET label = ? WHERE id = ?", (new_label, row_id))
+    conn.execute("UPDATE emails SET label = ? WHERE id = ?", (data['new_label'], data['id']))
     conn.commit()
     conn.close()
+    return jsonify(success=True)
 
-    return jsonify({'success': True})
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)
-
