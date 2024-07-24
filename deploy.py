@@ -1,3 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Result</title>
+</head>
+<body>
+    <h1>Upload Result</h1>
+    <p><strong>Book Name:</strong> {{ details.book_name }}</p>
+    <p><strong>Author Name:</strong> {{ details.author_name }}</p>
+    <p><strong>ISBN Number:</strong> {{ details.isbn_number }}</p>
+    <p><strong>Total Pages:</strong> {{ details.total_pages }}</p>
+</body>
+</html>
+
+
+
+
 import os
 import fitz  # PyMuPDF
 from flask import Flask, request, render_template
